@@ -1,0 +1,82 @@
+"""" D= دریافت فهرست تمامی سهام , D1= تاریخچه شاخص کل , """""
+
+import sys
+import numpy as np
+import pandas as pd
+import finpy_tse as tse
+import mplfinance as mpf
+import scipy.stats as stt
+import matplotlib
+import matplotlib.pyplot as plt
+import datetime
+#matplotlib.use('TKAgg')
+plt.style.use('ggplot')
+D = tse.Build_Market_StockList(bourse=True,            #:saham bazar bours
+                                 farabourse=True,      #:saham farabourse
+                                 payeh=True,           #:saham paye
+                                 detailed_list=True,   #:etelaat be dataframe
+                                 show_progress=True,   #:ravande daryaft
+                                )
+
+print('--------------------------------all stocks received--------------------------------')
+d = pd.DataFrame(D)
+d.to_excel('./stock.xlsx')
+d.to_csv('./stock.csv')
+
+print('------------------------stocks saved to excel and csv files------------------------')
+df = D.head(9999)
+df.to_excel('./stockheaders.xlsx')
+print(D.head(100))
+
+print('------------------------------headers saved and showed-----------------------------')
+D1 = tse.Get_CWI_History(start_date='1400-01-01',     #avalin dade
+                          end_date='1401-04-15',       #akharin dade
+                          ignore_date=False,            #kol history
+                          just_adj_close=False,        #megdar close
+                          show_weekday=True,
+                          double_date=True)
+D1.to_excel('./dwohlocav.xlsx')   #date, weekday, high, low, open, close, adjust, volume
+print(D1)
+
+print('------------------------------high/low saved and showed----------------------------')
+
+print('----------------------------------wanna continue?----------------------------------')
+
+print('do You want to check on specific one?')
+s = input('y/n?')
+if s == 'y':
+    D2 = tse.Get_Price_History(
+        stock=input('enter stock : '),
+        start_date='1401-01-01',
+        end_date='1401-04-15',
+        ignore_date=False,
+        adjust_price=True,
+        show_weekday=True,
+        double_date=True)
+    D2.index = D2['Date']  # tabdil tarikh  be miladi
+    mpf.plot(D2[-200:], type='renko',
+        style='classic',
+        title='required stock',
+        volume=True,
+        ylabel='Price',
+        ylabel_lower='Shares\nTraded',
+        mav=(2, 4, 6, 8),
+        savefig='required.png')
+    plt.show()
+    rq = pd.DataFrame(D2)
+    rq.to_csv('./required-stock.csv')
+    rq.to_excel('required-stock.xlsx')
+print('-------------------required stock saved as plot ,excel ,csv file-------------------')
+
+print('-------------------------looking for daily trading market?-------------------------')
+D3 = tse.Get_Price_History(
+    stock=input('enter stock : '),
+    start_date='1401-04-07',
+    end_date='1401-04-15',
+    ignore_date=False,
+    adjust_price=True,
+    show_weekday=True,
+    double_date=True)
+print(D3)
+
+D4 = tse.Get_MarketWatch(save_excel=True, save_path='path')
